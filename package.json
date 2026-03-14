@@ -1,0 +1,13 @@
+{
+  "name": "snl-fixed-asset-management",
+  "version": "1.0.0",
+  "description": "SNL Fixed Asset Management System",
+  "main": "server-node.js",
+  "scripts": {
+    "start": "node server-node.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
