@@ -106,7 +106,9 @@ const SAMPLE_ASSETS = [
 ];
 
 const DEFAULT_USERS = [
-  { username: 'admin', password: 'admin123', role: 'Administrator', displayName: 'Admin' }
+  { username: 'admin', password: 'admin123', role: 'Administrator', displayName: 'Admin' },
+  { username: 'account@innofarms.co.in', password: 'password123', role: 'Accountant', displayName: 'Accounts' },
+  { username: 'sudhanshu@innofarms.co.in', password: 'password123', role: 'Manager', displayName: 'Sudhanshu' }
 ];
 
 const DEFAULT_SETTINGS = {
