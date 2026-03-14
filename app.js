@@ -164,9 +164,13 @@ function initFirebase() {
     db     = firebase.firestore();
     fbAuth = firebase.auth();
     FIREBASE_MODE = true;
-    // Auto-fill viewerBaseUrl from LIVE_VIEWER_URL if set or if it was empty
+    // Auto-fill viewerBaseUrl from LIVE_VIEWER_URL if set or if it was empty/local
     if (typeof LIVE_VIEWER_URL !== 'undefined' && LIVE_VIEWER_URL) {
-      if (!state.settings.viewerBaseUrl || state.settings.viewerBaseUrl === '') {
+      const currentUrl = state.settings.viewerBaseUrl || '';
+      const isLocal = currentUrl.includes('192.168.') || currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1');
+      const isRailway = window.location.hostname.includes('railway.app') || window.location.hostname.includes('netlify.app');
+      
+      if (!currentUrl || currentUrl === '' || (isLocal && isRailway)) {
         state.settings.viewerBaseUrl = LIVE_VIEWER_URL;
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
       }

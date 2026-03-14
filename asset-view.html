@@ -153,10 +153,17 @@
       opacity: 0.8; line-height: 1.6;
     }
   </style>
-  <!-- Firebase App (the core Firebase SDK) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="firebase-config.js"></script>
+  <!-- Firebase SDK (v9 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js" onerror="alert('firebase-config.js missing!')"></script>
+  <script>
+    window.onerror = function(msg, url, line) {
+      const app = document.getElementById('app');
+      if (app) app.innerHTML = `<div class="error-wrap"><h2>Error</h2><p>${msg}</p><p class="small">${url}:${line}</p></div>`;
+      return false;
+    };
+  </script>
 </head>
 <body>
 <div id="app">
