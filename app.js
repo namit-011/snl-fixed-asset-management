@@ -1308,36 +1308,51 @@ function clearAllData() {
 }
 
 async function syncLocalToCloud() {
-  if (!FIREBASE_MODE) {
-    showToast('Firebase is not configured or in local mode.', 'danger');
+  if (!FIREBASE_MODE || !db) {
+    showToast('Firebase is not initialized. Please check your config.', 'danger');
     return;
   }
-  if (!confirm('This will upload all local assets to the cloud. Existing cloud assets with the same IDs will be updated. Continue?')) return;
   
-  const total = state.assets.length;
-  if (total === 0) {
-    showToast('No local assets to sync.', 'info');
+  if (fbAuth && !fbAuth.currentUser) {
+    showToast('You must be signed in to sync data to the cloud.', 'danger');
     return;
   }
 
+  // Get assets directly from localStorage to avoid cloud data overwriting local registry
+  const localAssets = JSON.parse(localStorage.getItem(STORAGE_KEYS.ASSETS) || 'null') || SAMPLE_ASSETS;
+  const total = localAssets.length;
+
+  if (total === 0) {
+    showToast('No local assets found to sync.', 'info');
+    return;
+  }
+
+  if (!confirm(`Found ${total} assets in local storage. Sync them to the cloud? Existing records will be updated.`)) return;
+  
   showToast(`Syncing ${total} assets to cloud...`, 'info');
   let success = 0;
   let failed = 0;
+  let lastError = null;
 
-  for (const asset of state.assets) {
+  for (const asset of localAssets) {
     try {
       await db.collection('assets').doc(asset.id).set(asset);
       success++;
     } catch (e) {
       console.error('Sync failed for:', asset.id, e);
       failed++;
+      lastError = e.message;
     }
   }
 
   if (failed === 0) {
     showToast(`Successfully synced ${success} assets to cloud!`, 'success');
   } else {
-    showToast(`Sync completed: ${success} success, ${failed} failed.`, failed > 0 ? 'warning' : 'success');
+    const errorHint = lastError && lastError.includes('permission-denied') 
+      ? 'Check your Firestore Security Rules.' 
+      : (lastError || 'Unknown error');
+    showToast(`Sync partially failed: ${failed} error(s). ${errorHint}`, 'danger');
+    console.error('Last Sync Error:', lastError);
   }
 }
 
