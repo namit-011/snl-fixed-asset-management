@@ -55,4 +55,4 @@ const FIREBASE_CONFIG = {
 // ── Your live Netlify URL (set after deploying) ───────────────
 // This is used in QR codes so phones anywhere can open the asset card.
 // Example: "https://snl-assets.netlify.app/asset-view.html"
-const LIVE_VIEWER_URL = "";
+const LIVE_VIEWER_URL = "https://snl-fixed-asset-management-production.up.railway.app/asset-view.html";
