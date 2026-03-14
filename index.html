@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fixed Asset Management System — SNL</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║         LOGIN PAGE           ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="loginPage" class="login-wrapper">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon"><i class="fas fa-building"></i></div>
+      <h2>SNL</h2>
+      <p>Fixed Asset Management System</p>
+    </div>
+    <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+      <div class="mb-3">
+        <label class="form-label fw-semibold" id="loginUsernameLabel">Username</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-user"></i></span>
+          <input type="text" id="loginUsername" class="form-control" placeholder="Enter username" autocomplete="username" required>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-lock"></i></span>
+          <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()">
+            <i class="fas fa-eye" id="passwordEye"></i>
+          </button>
+        </div>
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="rememberMe">
+        <label class="form-check-label text-secondary" for="rememberMe">Remember me</label>
+      </div>
+      <div id="loginError" class="alert alert-danger py-2 d-none small"></div>
+      <button type="submit" class="btn btn-primary w-100 btn-login">
+        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+      </button>
+    </form>
+    <div class="login-hint mt-3" id="loginHint">
+      <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Default credentials: <strong>admin</strong> / <strong>admin123</strong></small>
+    </div>
+    <div id="cloudModeTag" style="display:none;margin-top:8px;text-align:center">
+      <span style="background:#1e3a5f;color:#fff;font-size:0.7rem;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:0.5px">
+        <i class="fas fa-cloud me-1"></i>CLOUD MODE — use your email address
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║         MAIN APP             ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="mainApp" style="display:none">
+
+  <!-- ── SIDEBAR ── -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="fas fa-building"></i>
+        <span>SNL Assets</span>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar"><i class="fas fa-user-tie"></i></div>
+      <div class="user-info">
+        <span class="user-name" id="sidebarUsername">Admin</span>
+        <span class="user-role">Administrator</span>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="#" class="nav-link active" onclick="showSection('dashboard', this)">
+        <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+      </a></li>
+      <li><a href="#" class="nav-link" onclick="showSection('assetRegister', this)">
+        <i class="fas fa-list-alt"></i><span>Asset Register</span>
+      </a></li>
+      <li><a href="#" class="nav-link" onclick="showSection('addAsset', this)">
+        <i class="fas fa-plus-circle"></i><span>Add New Asset</span>
+      </a></li>
+      <li><a href="#" class="nav-link" onclick="showSection('qrManager', this)">
+        <i class="fas fa-qrcode"></i><span>QR Code Manager</span>
+      </a></li>
+      <li><a href="#" class="nav-link" onclick="showSection('reports', this)">
+        <i class="fas fa-chart-bar"></i><span>Reports</span>
+      </a></li>
+      <li><a href="#" class="nav-link" onclick="showSection('settings', this)">
+        <i class="fas fa-cog"></i><span>Settings</span>
+      </a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+      </a>
+    </div>
+  </nav>
+
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main id="mainContent">
+    <header class="top-navbar">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="navbar-title" id="pageTitle">Dashboard</div>
+      <div class="navbar-actions">
+        <span class="navbar-date" id="currentDateDisplay"></span>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-user me-1"></i><span id="navUsername">Admin</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><a class="dropdown-item" href="#" onclick="showSection('settings', null)"><i class="fas fa-cog me-2 text-secondary"></i>Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ══════ DASHBOARD ══════ -->
+      <section id="dashboardSection" class="content-section">
+        <div class="section-header">
+          <h1><i class="fas fa-tachometer-alt me-2 text-primary" style="font-size:1.2rem"></i>Dashboard</h1>
+          <div class="section-actions">
+            <button class="btn btn-primary btn-sm" onclick="showSection('addAsset', null)"><i class="fas fa-plus me-1"></i>Add Asset</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="exportCSV()"><i class="fas fa-download me-1"></i>Export</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card primary"><div class="stat-icon"><i class="fas fa-boxes"></i></div><div class="stat-info"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Assets</div></div></div>
+          <div class="stat-card success"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="stat-value" id="statActive">0</div><div class="stat-label">Active Assets</div></div></div>
+          <div class="stat-card warning"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-value" id="statDue">0</div><div class="stat-label">Inspection Due (30d)</div></div></div>
+          <div class="stat-card danger"><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-info"><div class="stat-value" id="statOverdue">0</div><div class="stat-label">Overdue</div></div></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title"><i class="fas fa-map-marker-alt me-2"></i>Assets by Location</div><canvas id="locationChart" height="240"></canvas></div>
+          <div class="chart-card"><div class="chart-title"><i class="fas fa-tags me-2"></i>Assets by Category</div><canvas id="categoryChart" height="240"></canvas></div>
+        </div>
+
+        <div class="dashboard-bottom">
+          <div class="table-card">
+            <div class="table-card-header">
+              <h3><i class="fas fa-history me-2"></i>Recent Assets</h3>
+              <a href="#" class="view-all" onclick="showSection('assetRegister', null)">View All →</a>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead><tr><th>Asset ID</th><th>Name</th><th>Assigned To</th><th>Status</th></tr></thead>
+                <tbody id="recentAssetsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h3><i class="fas fa-calendar-check me-2"></i>Upcoming Inspections</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead><tr><th>Asset</th><th>Location</th><th>Due Date</th><th>Days</th></tr></thead>
+                <tbody id="inspectionBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════ ASSET REGISTER ══════ -->
+      <section id="assetRegisterSection" class="content-section" style="display:none">
+        <div class="section-header">
+          <h1><i class="fas fa-list-alt me-2 text-primary" style="font-size:1.2rem"></i>Asset Register</h1>
+          <div class="section-actions">
+            <button class="btn btn-primary btn-sm" onclick="showSection('addAsset', null)"><i class="fas fa-plus me-1"></i>Add</button>
+            <button class="btn btn-outline-success btn-sm" onclick="exportCSV()"><i class="fas fa-file-csv me-1"></i>CSV</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="printAssetList()"><i class="fas fa-print me-1"></i>Print</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by ID, name, assignee..." oninput="renderAssetTable()">
+          </div>
+          <select id="filterLocation" class="form-select filter-select" onchange="renderAssetTable()"><option value="">All Locations</option></select>
+          <select id="filterCategory" class="form-select filter-select" onchange="renderAssetTable()">
+            <option value="">All Categories</option>
+            <option>Electronics</option><option>Furniture</option><option>Vehicle</option><option>Equipment</option><option>Other</option>
+          </select>
+          <select id="filterStatus" class="form-select filter-select" onchange="renderAssetTable()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="due">Due for Inspection</option>
+            <option value="overdue">Overdue</option>
+            <option value="inactive">Inactive</option>
+            <option value="maintenance">Under Maintenance</option>
+            <option value="disposed">Disposed</option>
+          </select>
+        </div>
+
+        <div class="result-count">Showing <strong id="assetCount">0</strong> assets</div>
+
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="table table-hover asset-table">
+              <thead>
+                <tr>
+                  <th class="sortable" onclick="sortBy('assetId')">Asset ID <i class="fas fa-sort ms-1"></i></th>
+                  <th class="sortable" onclick="sortBy('name')">Name <i class="fas fa-sort ms-1"></i></th>
+                  <th class="sortable" onclick="sortBy('category')">Category <i class="fas fa-sort ms-1"></i></th>
+                  <th class="sortable" onclick="sortBy('location')">Location <i class="fas fa-sort ms-1"></i></th>
+                  <th class="sortable" onclick="sortBy('assignedTo')">Assigned To <i class="fas fa-sort ms-1"></i></th>
+                  <th class="sortable" onclick="sortBy('purchaseDate')">Purchase Date <i class="fas fa-sort ms-1"></i></th>
+                  <th class="sortable" onclick="sortBy('nextInspection')">Next Inspection <i class="fas fa-sort ms-1"></i></th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="assetTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="paginationBar" class="pagination-bar"></div>
+      </section>
+
+      <!-- ══════ ADD / EDIT ASSET ══════ -->
+      <section id="addAssetSection" class="content-section" style="display:none">
+        <div class="section-header">
+          <h1 id="formTitle"><i class="fas fa-plus-circle me-2 text-primary" style="font-size:1.2rem"></i>Add New Asset</h1>
+        </div>
+        <div class="form-card">
+          <form id="assetForm" onsubmit="saveAsset(event)" novalidate>
+            <input type="hidden" id="editingId">
+            <div class="form-row-grid">
+              <div>
+                <label class="form-label required">Asset ID</label>
+                <div class="input-group">
+                  <input type="text" id="fAssetId" class="form-control" placeholder="e.g. LAPTOP-001" required>
+                  <button type="button" class="btn btn-outline-secondary" onclick="autoGenerateId()" title="Auto-generate">
+                    <i class="fas fa-magic me-1"></i>Auto
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="form-label required">Asset Name</label>
+                <input type="text" id="fName" class="form-control" placeholder="e.g. Dell Laptop" required>
+              </div>
+              <div>
+                <label class="form-label">Category</label>
+                <select id="fCategory" class="form-select">
+                  <option>Electronics</option><option>Furniture</option>
+                  <option>Vehicle</option><option>Equipment</option><option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label required">Location</label>
+                <input type="text" id="fLocation" class="form-control" placeholder="e.g. SNL Main Office" required>
+              </div>
+              <div>
+                <label class="form-label">Purchase Date</label>
+                <input type="date" id="fPurchaseDate" class="form-control">
+              </div>
+              <div>
+                <label class="form-label">Invoice Number</label>
+                <input type="text" id="fInvoice" class="form-control" placeholder="e.g. INV-282">
+              </div>
+              <div>
+                <label class="form-label">Vendor / Purchased From</label>
+                <input type="text" id="fVendor" class="form-control" placeholder="e.g. Cyber Shoppe">
+              </div>
+              <div>
+                <label class="form-label">Assigned To</label>
+                <input type="text" id="fAssignedTo" class="form-control" placeholder="Employee name">
+              </div>
+              <div>
+                <label class="form-label">Product Life (Years)</label>
+                <input type="number" id="fProductLife" class="form-control" min="1" max="100" placeholder="e.g. 5">
+              </div>
+              <div>
+                <label class="form-label">Next Inspection Date</label>
+                <input type="date" id="fNextInspection" class="form-control">
+              </div>
+              <div>
+                <label class="form-label">Purchase Value (₹)</label>
+                <input type="number" id="fPurchaseValue" class="form-control" min="0" step="0.01" placeholder="0.00">
+              </div>
+              <div>
+                <label class="form-label">Status</label>
+                <select id="fStatus" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="maintenance">Under Maintenance</option>
+                  <option value="disposed">Disposed</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="form-label">Notes</label>
+              <textarea id="fNotes" class="form-control" rows="3" placeholder="Additional notes about this asset..."></textarea>
+            </div>
+
+            <!-- Asset Photo -->
+            <div class="mt-4">
+              <label class="form-label fw-semibold"><i class="fas fa-camera me-2"></i>Asset Photo <span class="text-muted fw-normal">(optional)</span></label>
+              <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('fImage').click()">
+                <div id="imageUploadPlaceholder">
+                  <i class="fas fa-cloud-upload-alt" style="font-size:2.2rem;color:var(--text-gray)"></i>
+                  <p class="mb-0 mt-2 fw-semibold" style="color:var(--text-gray)">Click to upload a photo</p>
+                  <p class="mb-0 small text-muted">JPG, PNG, WEBP · Auto-compressed to save space</p>
+                </div>
+                <img id="imagePreview" src="" alt="Asset Preview"
+                     style="display:none;max-width:100%;max-height:240px;border-radius:8px;object-fit:contain">
+              </div>
+              <input type="file" id="fImage" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+              <button type="button" id="removeImageBtn" class="btn btn-sm btn-outline-danger mt-2" style="display:none" onclick="removeImage()">
+                <i class="fas fa-times me-1"></i>Remove Photo
+              </button>
+            </div>
+
+            <!-- QR Preview -->
+            <div class="qr-preview-section mt-4">
+              <h4><i class="fas fa-qrcode me-2"></i>QR Code Preview</h4>
+              <p class="text-muted small">Scan this QR to instantly see all asset details — ID, location, assigned person, and inspection info.</p>
+              <div id="formQrPreview" style="min-height:60px"></div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline-secondary" onclick="cancelForm()">
+                <i class="fas fa-times me-2"></i>Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i><span id="saveButtonText">Save Asset</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ══════ QR CODE MANAGER ══════ -->
+      <section id="qrManagerSection" class="content-section" style="display:none">
+        <div class="section-header">
+          <h1><i class="fas fa-qrcode me-2 text-primary" style="font-size:1.2rem"></i>QR Code Manager</h1>
+          <div class="section-actions">
+            <button class="btn btn-primary btn-sm" onclick="printAllQR()"><i class="fas fa-print me-1"></i>Print All</button>
+          </div>
+        </div>
+        <div class="qr-search mb-3">
+          <div class="search-box" style="max-width:400px">
+            <i class="fas fa-search"></i>
+            <input type="text" id="qrSearch" placeholder="Search assets..." oninput="renderQRGrid()">
+          </div>
+        </div>
+        <div id="qrGrid" class="qr-grid"></div>
+      </section>
+
+      <!-- ══════ REPORTS ══════ -->
+      <section id="reportsSection" class="content-section" style="display:none">
+        <div class="section-header">
+          <h1><i class="fas fa-chart-bar me-2 text-primary" style="font-size:1.2rem"></i>Reports</h1>
+        </div>
+        <div class="reports-grid">
+          <div class="report-card" onclick="generateReport('full')">
+            <div class="report-icon"><i class="fas fa-file-alt"></i></div>
+            <h4>Full Asset Report</h4>
+            <p>Complete list of all assets with all details</p>
+          </div>
+          <div class="report-card" onclick="generateReport('inspection')">
+            <div class="report-icon"><i class="fas fa-clipboard-check"></i></div>
+            <h4>Inspection Report</h4>
+            <p>Assets due or overdue for inspection</p>
+          </div>
+          <div class="report-card" onclick="generateReport('location')">
+            <div class="report-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <h4>Location-wise Report</h4>
+            <p>Assets grouped by location</p>
+          </div>
+          <div class="report-card" onclick="generateReport('category')">
+            <div class="report-icon"><i class="fas fa-tags"></i></div>
+            <h4>Category-wise Report</h4>
+            <p>Assets grouped by category</p>
+          </div>
+          <div class="report-card" onclick="generateReport('value')">
+            <div class="report-icon"><i class="fas fa-rupee-sign"></i></div>
+            <h4>Asset Value Report</h4>
+            <p>Total value by category and location</p>
+          </div>
+          <div class="report-card" onclick="exportCSV()">
+            <div class="report-icon"><i class="fas fa-file-csv"></i></div>
+            <h4>Export to CSV</h4>
+            <p>Download all asset data as CSV file</p>
+          </div>
+        </div>
+        <div id="reportOutput" class="report-output" style="display:none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 id="reportTitle" class="mb-0 text-primary"></h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="printReport()"><i class="fas fa-print me-1"></i>Print</button>
+          </div>
+          <div id="reportContent"></div>
+        </div>
+      </section>
+
+      <!-- ══════ SETTINGS ══════ -->
+      <section id="settingsSection" class="content-section" style="display:none">
+        <div class="section-header">
+          <h1><i class="fas fa-cog me-2 text-primary" style="font-size:1.2rem"></i>Settings</h1>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3><i class="fas fa-user-cog me-2"></i>Account Settings</h3>
+            <form onsubmit="changePassword(event)" novalidate>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Current Password</label>
+                <input type="password" id="currentPwd" class="form-control" placeholder="Current password">
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+                <input type="password" id="newPwd" class="form-control" placeholder="New password">
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Confirm New Password</label>
+                <input type="password" id="confirmPwd" class="form-control" placeholder="Confirm new password">
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-key me-2"></i>Change Password</button>
+            </form>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fas fa-building me-2"></i>Company Settings</h3>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Company Name</label>
+              <input type="text" id="companyName" class="form-control" placeholder="e.g. SNL">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Default Asset ID Prefix</label>
+              <input type="text" id="assetPrefix" class="form-control" placeholder="e.g. ASSET">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Assets Per Page</label>
+              <select id="perPageSetting" class="form-select">
+                <option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold"><i class="fas fa-qrcode me-1"></i> Asset Viewer Base URL
+                <span class="badge bg-primary ms-1" style="font-size:0.65rem;font-weight:600">QR SCAN</span>
+              </label>
+              <input type="text" id="viewerBaseUrl" class="form-control" placeholder="e.g. http://192.168.1.100:8080/asset-view.html">
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Run <strong>Start Asset Server.bat</strong> → copy the URL it shows here → Save.<br>
+                Once set, QR codes will open a mobile-friendly card when scanned.
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save me-2"></i>Save Settings</button>
+            <button class="btn btn-outline-secondary ms-2" onclick="testViewerUrl()" title="Test that the viewer URL is reachable">
+              <i class="fas fa-vial me-1"></i>Test URL
+            </button>
+          </div>
+
+          <div class="settings-card danger-zone">
+            <h3><i class="fas fa-database me-2 text-secondary"></i>Data Management</h3>
+            <p class="text-muted small mb-3">Import or export your asset data, or reset to default sample data.</p>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-outline-success btn-sm" onclick="exportCSV()"><i class="fas fa-file-csv me-1"></i>Export CSV</button>
+              <button class="btn btn-outline-info btn-sm" onclick="exportJSON()"><i class="fas fa-file-code me-1"></i>Export JSON</button>
+              <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload me-1"></i>Import JSON</button>
+              <button class="btn btn-primary btn-sm" onclick="syncLocalToCloud()"><i class="fas fa-cloud-upload-alt me-1"></i>Sync All to Cloud</button>
+              <button class="btn btn-outline-warning btn-sm" onclick="loadSampleData()"><i class="fas fa-sync me-1"></i>Load Sample Data</button>
+              <button class="btn btn-outline-danger btn-sm" onclick="clearAllData()"><i class="fas fa-trash me-1"></i>Clear All Data</button>
+            </div>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+          </div>
+        </div>
+      </section>
+
+    </div><!-- .content-area -->
+  </main>
+</div><!-- #mainApp -->
+
+<!-- ╔══════════════════╗ -->
+<!-- ║     MODALS       ║ -->
+<!-- ╚══════════════════╝ -->
+
+<!-- View Asset Modal -->
+<div class="modal fade" id="viewAssetModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-box-open me-2"></i>Asset Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewAssetContent"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary btn-sm" id="printLabelBtn"><i class="fas fa-print me-2"></i>Print QR Label</button>
+        <button type="button" class="btn btn-outline-success btn-sm" id="editFromViewBtn"><i class="fas fa-edit me-2"></i>Edit</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" style="color:#fff"><i class="fas fa-trash me-2"></i>Delete Asset</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Delete <strong id="deleteAssetName"></strong>?</p>
+        <p class="text-muted small mb-0">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteBtn"><i class="fas fa-trash me-1"></i>Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="appToast" class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Message</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Print Area (hidden, used for printing) -->
+<div id="qrPrintArea" style="display:none"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase SDK (compat v9) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js" onerror="console.info('firebase-config.js not configured — running in local mode')"></script>
+<script src="app.js"></script>
+</body>
+</html>

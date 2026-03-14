@@ -1,0 +1,4 @@
+.claude/
+*.xlsx
+/tmp/
+.gemini/

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#1e3a5f">
+  <title>Asset Details</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(160deg, #1e3a5f 0%, #2a5298 55%, #3498db 100%);
+      min-height: 100vh;
+      padding: 14px 14px 40px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #fff;
+      border-radius: 22px;
+      overflow: hidden;
+      max-width: 420px;
+      margin: 0 auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    }
+
+    /* ── HEADER ── */
+    .card-header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
+      padding: 22px 20px 18px;
+      text-align: center;
+      position: relative;
+    }
+    .co-name {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2.5px;
+      color: rgba(255,255,255,0.65); margin-bottom: 6px;
+    }
+    .asset-id-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      padding: 3px 12px; font-size: 11px;
+      font-weight: 700; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 8px;
+    }
+    .asset-name {
+      font-size: 22px; font-weight: 800; color: #fff;
+      line-height: 1.2; margin-bottom: 4px;
+    }
+    .asset-category {
+      font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 12px;
+    }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 14px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .s-active      { background: rgba(39,174,96,0.25);  color: #4ade80; border: 1px solid rgba(39,174,96,0.4); }
+    .s-due         { background: rgba(251,191,36,0.25); color: #fbbf24; border: 1px solid rgba(251,191,36,0.4); }
+    .s-overdue     { background: rgba(239,68,68,0.25);  color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+    .s-inactive    { background: rgba(148,163,184,0.25);color: #94a3b8; border: 1px solid rgba(148,163,184,0.4); }
+    .s-maintenance { background: rgba(96,165,250,0.25); color: #93c5fd; border: 1px solid rgba(96,165,250,0.4); }
+    .s-disposed    { background: rgba(148,163,184,0.25);color: #94a3b8; border: 1px solid rgba(148,163,184,0.4); }
+
+    /* ── PHOTO ── */
+    .asset-photo {
+      width: 100%; max-height: 220px; object-fit: cover; display: block;
+      border-bottom: 3px solid #f0f4f8;
+    }
+
+    /* ── INSPECTION ALERT ── */
+    .insp-alert {
+      margin: 14px 14px 0;
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .insp-alert.ok      { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .insp-alert.warn    { background: #fffbeb; border: 1px solid #fde68a; }
+    .insp-alert.danger  { background: #fef2f2; border: 1px solid #fecaca; }
+    .insp-alert .icon   { font-size: 28px; flex-shrink: 0; }
+    .insp-alert .label  { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #6b7280; margin-bottom: 2px; }
+    .insp-alert .value  { font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .insp-alert.ok    .value { color: #15803d; }
+    .insp-alert.warn  .value { color: #b45309; }
+    .insp-alert.danger .value{ color: #b91c1c; }
+    .insp-alert .sub    { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+    /* ── SECTIONS ── */
+    .section { padding: 0 16px; margin-top: 16px; }
+    .section-title {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 2px; color: #94a3b8; margin-bottom: 10px;
+      padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* ── DETAIL ROWS ── */
+    .detail-row {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 9px 0; border-bottom: 1px solid #f8fafc;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .d-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0; margin-top: 1px;
+    }
+    .ic-loc   { background: #fef2f2; }
+    .ic-user  { background: #eff6ff; }
+    .ic-date  { background: #f0fdf4; }
+    .ic-inv   { background: #fffbeb; }
+    .ic-vend  { background: #faf5ff; }
+    .ic-val   { background: #f0fdf4; }
+    .ic-life  { background: #eff6ff; }
+    .ic-notes { background: #fffbeb; }
+    .d-content { flex: 1; }
+    .d-label { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .d-value { font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.3; }
+
+    /* ── VALUE HIGHLIGHT ── */
+    .value-box {
+      margin: 14px 14px 0;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
+      border-radius: 14px; padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .value-box .vb-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+    .value-box .vb-amount { font-size: 22px; font-weight: 800; color: #fff; }
+
+    /* ── FOOTER ── */
+    .card-footer {
+      background: #f8fafc; padding: 14px 16px;
+      text-align: center; margin-top: 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .card-footer .ft-brand { font-size: 11px; font-weight: 700; color: #1e3a5f; }
+    .card-footer .ft-time  { font-size: 10px; color: #94a3b8; margin-top: 3px; }
+
+    /* ── ERROR ── */
+    .error-wrap {
+      color: white; text-align: center;
+      padding: 60px 20px; max-width: 360px; margin: 0 auto;
+    }
+    .error-wrap .e-icon { font-size: 56px; margin-bottom: 16px; }
+    .error-wrap h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .error-wrap p  { font-size: 14px; opacity: 0.75; line-height: 1.5; }
+    .error-wrap .e-hint {
+      margin-top: 20px; background: rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 14px; font-size: 12px;
+      opacity: 0.8; line-height: 1.6;
+    }
+  </style>
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+<div id="app">
+  <div class="error-wrap">
+    <div class="e-icon">⏳</div>
+    <h2>Loading…</h2>
+    <p>Reading asset details from QR code</p>
+  </div>
+</div>
+
+<script>
+// ── helpers ──────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }); }
+  catch { return d; }
+}
+function fmtCurrency(v) {
+  if (!v && v !== 0) return '—';
+  return '₹' + Number(v).toLocaleString('en-IN');
+}
+function daysLeft(d) {
+  if (!d) return null;
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.ceil((new Date(d) - t) / 86400000);
+}
+function statusLabel(s) {
+  return { active:'Active', due:'Due for Inspection', overdue:'Overdue', inactive:'Inactive', maintenance:'Under Maintenance', disposed:'Disposed' }[s] || s;
+}
+function statusClass(s) {
+  return 's-' + (['active','due','overdue','inactive','maintenance','disposed'].includes(s) ? s : 'active');
+}
+function statusIcon(s) {
+  return { active:'✅', due:'⚠️', overdue:'🚨', inactive:'⏸️', maintenance:'🔧', disposed:'♻️' }[s] || '✅';
+}
+// Unicode-safe base64 decode
+function b64decode(s) {
+  if (!s) return null;
+  try {
+    return decodeURIComponent(atob(s).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join(''));
+  } catch (e) {
+    return null;
+  }
+}
+
+// ── main render ──────────────────────────────────────────────
+async function render() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const liveId = urlParams.get('id');
+  const hashPayload = location.hash.slice(1);
+
+  let d = null;
+  let isLive = false;
+
+  if (liveId) {
+    // Attempt Live Mode (fetch from Firebase)
+    try {
+      if (typeof firebase !== 'undefined' && typeof FIREBASE_CONFIG !== 'undefined') {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        const db = firebase.firestore();
+        const doc = await db.collection('assets').doc(liveId).get();
+        if (doc.exists) {
+          d = doc.data();
+          isLive = true;
+          // Map fields if they differ between payload and firestore
+          d = {
+            co: d.companyName || d.co || 'SNL',
+            id: d.assetId,
+            n:  d.name,
+            c:  d.category,
+            l:  d.location,
+            a:  d.assignedTo,
+            pd: d.purchaseDate,
+            inv: d.invoiceNumber,
+            v:   d.vendor,
+            pl:  d.productLife,
+            ni:  d.nextInspection,
+            pv:  d.purchaseValue,
+            s:   d.status || 'active',
+            nt:  d.notes,
+            img: d.image
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Firebase fetch failed:', e);
+    }
+  }
+
+  // Fallback to hash payload or offline mode
+  if (!d && hashPayload) {
+    try {
+      d = JSON.parse(b64decode(hashPayload));
+    } catch(e) { /* handled below */ }
+  }
+
+  if (!d) {
+    showError('Asset Not Found', liveId ? `Could not find asset with ID: ${liveId} in the live database.` : 'No asset data found in QR code.');
+    return;
+  }
+
+  const days = daysLeft(d.ni);
+  let inspClass = 'ok', inspIcon = '📅';
+  let inspText = fmtDate(d.ni);
+  let inspSub  = days !== null ? `${days} days remaining` : '';
+  if (days !== null && days < 0) {
+    inspClass = 'danger'; inspIcon = '🚨';
+    inspText  = fmtDate(d.ni);
+    inspSub   = `${Math.abs(days)} days OVERDUE — action required!`;
+  } else if (days !== null && days === 0) {
+    inspClass = 'warn'; inspIcon = '⚠️';
+    inspSub   = 'Inspection due TODAY';
+  } else if (days !== null && days <= 30) {
+    inspClass = 'warn'; inspIcon = '⚠️';
+    inspSub   = `Due in ${days} day${days===1?'':'s'} — schedule soon`;
+  } else if (days !== null) {
+    inspSub = `${days} days from today`;
+  }
+
+  document.getElementById('app').innerHTML = `
+  <div class="card">
+
+    <div class="card-header">
+      <div class="co-name">${d.co || 'Company'} &mdash; Fixed Asset</div>
+      <div class="asset-id-badge">${d.id}</div>
+      <div class="asset-name">${d.n}</div>
+      <div class="asset-category">${d.c || ''}</div>
+      <span class="status-pill ${statusClass(d.s)}">${statusIcon(d.s)} ${statusLabel(d.s)}</span>
+      ${isLive ? `<div style="font-size:9px; color:rgba(255,255,255,0.6); margin-top:8px; font-weight:bold; letter-spacing:1px">📡 LIVE CLOUD RECORD</div>` : ''}
+    </div>
+
+    ${d.img ? `<img src="${d.img}" class="asset-photo" alt="${d.n}">` : ''}
+
+    <!-- Inspection alert (most important — show first) -->
+    ${d.ni ? `
+    <div class="insp-alert ${inspClass}">
+      <div class="icon">${inspIcon}</div>
+      <div>
+        <div class="label">Next Inspection</div>
+        <div class="value">${inspText}</div>
+        <div class="sub">${inspSub}</div>
+      </div>
+    </div>` : ''}
+
+    <!-- Purchase value highlight -->
+    ${d.pv ? `
+    <div class="value-box">
+      <div>
+        <div class="vb-label">Purchase Value</div>
+        <div class="vb-amount">${fmtCurrency(d.pv)}</div>
+      </div>
+      <div style="font-size:32px;opacity:0.4">₹</div>
+    </div>` : ''}
+
+    <!-- Whereabouts -->
+    <div class="section">
+      <div class="section-title">📍 Whereabouts</div>
+
+      <div class="detail-row">
+        <div class="d-icon ic-loc">📍</div>
+        <div class="d-content">
+          <div class="d-label">Location</div>
+          <div class="d-value">${d.l || '—'}</div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="d-icon ic-user">👤</div>
+        <div class="d-content">
+          <div class="d-label">Assigned To</div>
+          <div class="d-value">${d.a || '—'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purchase details -->
+    <div class="section">
+      <div class="section-title">🛒 Purchase Details</div>
+
+      <div class="detail-row">
+        <div class="d-icon ic-date">📅</div>
+        <div class="d-content">
+          <div class="d-label">Purchase Date</div>
+          <div class="d-value">${fmtDate(d.pd)}</div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="d-icon ic-inv">🧾</div>
+        <div class="d-content">
+          <div class="d-label">Invoice No.</div>
+          <div class="d-value">${d.inv || '—'}</div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="d-icon ic-vend">🏪</div>
+        <div class="d-content">
+          <div class="d-label">Vendor</div>
+          <div class="d-value">${d.v || '—'}</div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="d-icon ic-life">⏱</div>
+        <div class="d-content">
+          <div class="d-label">Product Life</div>
+          <div class="d-value">${d.pl ? d.pl + ' years' : '—'}</div>
+        </div>
+      </div>
+    </div>
+
+    ${d.nt ? `
+    <div class="section" style="margin-bottom:4px">
+      <div class="section-title">📝 Notes</div>
+      <div class="detail-row">
+        <div class="d-icon ic-notes">📝</div>
+        <div class="d-content">
+          <div class="d-label">Remarks</div>
+          <div class="d-value" style="font-size:14px;color:#374151">${d.nt}</div>
+        </div>
+      </div>
+    </div>` : ''}
+
+    <div class="card-footer">
+      <div class="ft-brand">${d.co || 'Fixed Asset'} Management System</div>
+      <div class="ft-time">Scanned on ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})} at ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+  </div>`;
+}
+
+function showError(title, msg) {
+  document.getElementById('app').innerHTML = `
+  <div class="error-wrap">
+    <div class="e-icon">❌</div>
+    <h2>${title}</h2>
+    <p>${msg}</p>
+    <div class="e-hint">
+      To fix: open the asset app → Settings → set <strong>Asset Viewer Base URL</strong> → then reprint the QR label.
+    </div>
+  </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
