@@ -167,7 +167,7 @@ function initFirebase() {
     // Auto-fill viewerBaseUrl from LIVE_VIEWER_URL if set or if it was empty/local
     if (typeof LIVE_VIEWER_URL !== 'undefined' && LIVE_VIEWER_URL) {
       const currentUrl = state.settings.viewerBaseUrl || '';
-      const isLocal = currentUrl.includes('192.168.') || currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1');
+      const isLocal = currentUrl.includes('192.168.') || currentUrl.includes('10.') || currentUrl.includes('172.') || currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1');
       const isRailway = window.location.hostname.includes('railway.app') || window.location.hostname.includes('netlify.app');
       
       if (!currentUrl || currentUrl === '' || (isLocal && isRailway)) {
