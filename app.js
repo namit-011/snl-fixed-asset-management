@@ -164,9 +164,12 @@ function initFirebase() {
     db     = firebase.firestore();
     fbAuth = firebase.auth();
     FIREBASE_MODE = true;
-    // Auto-fill viewerBaseUrl from LIVE_VIEWER_URL if set
-    if (typeof LIVE_VIEWER_URL !== 'undefined' && LIVE_VIEWER_URL && !state.settings.viewerBaseUrl) {
-      state.settings.viewerBaseUrl = LIVE_VIEWER_URL;
+    // Auto-fill viewerBaseUrl from LIVE_VIEWER_URL if set or if it was empty
+    if (typeof LIVE_VIEWER_URL !== 'undefined' && LIVE_VIEWER_URL) {
+      if (!state.settings.viewerBaseUrl || state.settings.viewerBaseUrl === '') {
+        state.settings.viewerBaseUrl = LIVE_VIEWER_URL;
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
+      }
     }
     // Update login UI to show cloud mode
     const tag = document.getElementById('cloudModeTag');
@@ -1348,11 +1351,11 @@ async function syncLocalToCloud() {
   if (failed === 0) {
     showToast(`Successfully synced ${success} assets to cloud!`, 'success');
   } else {
-    const errorHint = lastError && lastError.includes('permission-denied') 
-      ? 'Check your Firestore Security Rules.' 
+    const errorHint = lastError && lastError.toLowerCase().includes('permission-denied') 
+      ? 'Firestore Permission Denied — check your Rules.' 
       : (lastError || 'Unknown error');
     showToast(`Sync partially failed: ${failed} error(s). ${errorHint}`, 'danger');
-    console.error('Last Sync Error:', lastError);
+    console.error('Final Sync Error:', lastError);
   }
 }
 
