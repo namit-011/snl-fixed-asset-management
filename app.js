@@ -353,6 +353,7 @@ const SECTION_MAP = {
   addAsset:      { el: 'addAssetSection',       title: 'Add New Asset' },
   qrManager:     { el: 'qrManagerSection',      title: 'QR Code Manager' },
   reports:       { el: 'reportsSection',        title: 'Reports' },
+  floorView:     { el: 'floorViewSection',      title: 'Floor View' },
   settings:      { el: 'settingsSection',       title: 'Settings' },
 };
 
@@ -384,6 +385,7 @@ function showSection(key, linkEl) {
   if (key === 'addAsset')      initAddForm();
   if (key === 'qrManager')     renderQRGrid();
   if (key === 'reports')       document.getElementById('reportOutput').style.display = 'none';
+  if (key === 'floorView')     renderFloorView();
 
   // Close mobile sidebar
   closeSidebar();
@@ -1056,6 +1058,107 @@ function printAllQR() {
 }
 
 // ─── REPORTS ──────────────────────────────────────────────────
+// ─── FLOOR VIEW ───────────────────────────────────────────────
+function renderFloorView() {
+  const FLOOR_ORDER = ['Ground Floor', 'First Floor', 'Second Floor', 'Third Floor', 'General'];
+
+  function parseLocation(loc) {
+    if (!loc) return { cluster: 'Unknown', floor: 'General' };
+    const parts = loc.split(' - ');
+    const base  = parts[0].trim();
+    const floor = parts.length > 1 ? parts.slice(1).join(' - ').trim() : 'General';
+    // Normalise cluster name
+    let cluster;
+    if (/vatika/i.test(base))      cluster = 'Vatika';
+    else if (/snl/i.test(base))    cluster = 'SNL Main Office';
+    else                            cluster = base;
+    return { cluster, floor };
+  }
+
+  // Build: clusters → floors → asset-name → { count, value }
+  const clusters = {};
+  state.assets.forEach(a => {
+    const { cluster, floor } = parseLocation(a.location);
+    if (!clusters[cluster])               clusters[cluster] = {};
+    if (!clusters[cluster][floor])        clusters[cluster][floor] = {};
+    const key = a.name;
+    if (!clusters[cluster][floor][key])   clusters[cluster][floor][key] = { count: 0, value: 0 };
+    clusters[cluster][floor][key].count++;
+    clusters[cluster][floor][key].value += Number(a.purchaseValue) || 0;
+  });
+
+  const clusterIcons = {
+    'SNL Main Office': 'fa-building',
+    'Vatika':          'fa-city',
+  };
+  const floorColors = {
+    'Ground Floor': '#2563eb',
+    'First Floor':  '#16a34a',
+    'Second Floor': '#d97706',
+    'Third Floor':  '#7c3aed',
+    'General':      '#64748b',
+  };
+
+  let html = '';
+  Object.entries(clusters).forEach(([cluster, floors]) => {
+    const icon = clusterIcons[cluster] || 'fa-map-marker-alt';
+    const totalAssets = Object.values(floors).reduce((s, names) =>
+      s + Object.values(names).reduce((ss, v) => ss + v.count, 0), 0);
+    const totalValue  = Object.values(floors).reduce((s, names) =>
+      s + Object.values(names).reduce((ss, v) => ss + v.value, 0), 0);
+
+    html += `
+      <div class="floor-cluster-card mb-4">
+        <div class="floor-cluster-header">
+          <span><i class="fas ${icon} me-2"></i>${cluster}</span>
+          <span class="floor-cluster-meta">${totalAssets} assets &nbsp;·&nbsp; ${formatCurrency(totalValue)}</span>
+        </div>
+        <div class="floor-tiles-row">`;
+
+    const sortedFloors = Object.keys(floors).sort((a, b) => {
+      const ai = FLOOR_ORDER.indexOf(a), bi = FLOOR_ORDER.indexOf(b);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+
+    sortedFloors.forEach(floor => {
+      const names    = floors[floor];
+      const fCount   = Object.values(names).reduce((s, v) => s + v.count, 0);
+      const fValue   = Object.values(names).reduce((s, v) => s + v.value, 0);
+      const color    = floorColors[floor] || '#334155';
+      const rows     = Object.entries(names)
+        .sort((a, b) => b[1].count - a[1].count)
+        .map(([name, d]) => `
+          <tr>
+            <td>${name}</td>
+            <td class="text-center"><span class="floor-count-badge">${d.count}</span></td>
+            <td class="text-end" style="font-size:0.78rem;color:#64748b">${d.value > 0 ? formatCurrency(d.value) : '—'}</td>
+          </tr>`).join('');
+
+      html += `
+          <div class="floor-tile">
+            <div class="floor-tile-header" style="background:${color}">
+              <i class="fas fa-layer-group me-2"></i>${floor}
+              <span class="floor-tile-count">${fCount}</span>
+            </div>
+            <table class="floor-tile-table">
+              <thead><tr><th>Asset</th><th class="text-center">Qty</th><th class="text-end">Value</th></tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot>
+                <tr><td class="fw-semibold">Total</td>
+                  <td class="text-center fw-semibold">${fCount}</td>
+                  <td class="text-end fw-semibold" style="font-size:0.78rem">${fValue > 0 ? formatCurrency(fValue) : '—'}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  document.getElementById('floorViewContent').innerHTML = html || '<p class="text-muted">No assets found.</p>';
+}
+
 function generateReport(type) {
   const output  = document.getElementById('reportOutput');
   const title   = document.getElementById('reportTitle');
