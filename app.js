@@ -711,7 +711,20 @@ function initAddForm() {
   document.getElementById('assetForm').reset();
   document.getElementById('formQrPreview').innerHTML = '';
   document.getElementById('fPurchaseDate').valueAsDate = new Date();
+  handleLocationChange();
   removeImage();
+  autoGenerateId();
+}
+
+function handleLocationChange() {
+  const loc   = document.getElementById('fLocation').value;
+  const floor = document.getElementById('fFloor');
+  if (loc === 'SNL Main Office') {
+    floor.style.display = 'block';
+  } else {
+    floor.style.display = 'none';
+    floor.selectedIndex = 0;
+  }
 }
 
 function editAsset(id) {
@@ -725,7 +738,19 @@ function editAsset(id) {
   document.getElementById('fAssetId').value      = asset.assetId;
   document.getElementById('fName').value         = asset.name;
   document.getElementById('fCategory').value     = asset.category || 'Electronics';
-  document.getElementById('fLocation').value     = asset.location;
+
+  // Parse stored location back into cluster + floor dropdowns
+  const locStr   = asset.location || '';
+  const dashIdx  = locStr.indexOf(' - ');
+  const locBase  = dashIdx !== -1 ? locStr.slice(0, dashIdx) : locStr;
+  const locFloor = dashIdx !== -1 ? locStr.slice(dashIdx + 3) : '';
+  // Map legacy names
+  const locMap   = { 'SNL Office': 'SNL Main Office', 'SNL Main Office': 'SNL Main Office', 'Vatika': 'Vatika', 'SNL Sawai Madhopur': 'SNL Sawai Madhopur' };
+  const mappedLoc = locMap[locBase] || locBase;
+  document.getElementById('fLocation').value = mappedLoc;
+  handleLocationChange();
+  if (locFloor) document.getElementById('fFloor').value = locFloor;
+
   document.getElementById('fPurchaseDate').value = asset.purchaseDate || '';
   document.getElementById('fInvoice').value      = asset.invoiceNumber || '';
   document.getElementById('fVendor').value       = asset.vendor || '';
@@ -745,9 +770,13 @@ function editAsset(id) {
 
 function saveAsset(e) {
   e.preventDefault();
-  const assetId = document.getElementById('fAssetId').value.trim();
-  const name    = document.getElementById('fName').value.trim();
-  const loc     = document.getElementById('fLocation').value.trim();
+  const assetId  = document.getElementById('fAssetId').value.trim();
+  const name     = document.getElementById('fName').value.trim();
+  const locBase  = document.getElementById('fLocation').value;
+  const locFloor = document.getElementById('fFloor');
+  const loc      = (locBase === 'SNL Main Office' && locFloor.style.display !== 'none')
+    ? `${locBase} - ${locFloor.value}`
+    : locBase;
   if (!assetId || !name || !loc) { showToast('Please fill all required fields.', 'danger'); return; }
 
   const editId = document.getElementById('editingId').value;
@@ -1069,9 +1098,10 @@ function renderFloorView() {
     const floor = parts.length > 1 ? parts.slice(1).join(' - ').trim() : 'General';
     // Normalise cluster name
     let cluster;
-    if (/vatika/i.test(base))      cluster = 'Vatika';
-    else if (/snl/i.test(base))    cluster = 'SNL Main Office';
-    else                            cluster = base;
+    if (/vatika/i.test(base))               cluster = 'Vatika';
+    else if (/sawai madhopur/i.test(base))  cluster = 'SNL Sawai Madhopur';
+    else if (/snl/i.test(base))             cluster = 'SNL Main Office';
+    else                                    cluster = base;
     return { cluster, floor };
   }
 
@@ -1088,8 +1118,9 @@ function renderFloorView() {
   });
 
   const clusterIcons = {
-    'SNL Main Office': 'fa-building',
-    'Vatika':          'fa-city',
+    'SNL Main Office':    'fa-building',
+    'Vatika':             'fa-city',
+    'SNL Sawai Madhopur': 'fa-map-pin',
   };
   const floorColors = {
     'Ground Floor': '#2563eb',

@@ -272,7 +272,17 @@
               </div>
               <div>
                 <label class="form-label required">Location</label>
-                <input type="text" id="fLocation" class="form-control" placeholder="e.g. SNL Main Office" required>
+                <select id="fLocation" class="form-select" onchange="handleLocationChange()" required>
+                  <option value="">Select location...</option>
+                  <option value="SNL Main Office">SNL Main Office</option>
+                  <option value="Vatika">Vatika</option>
+                  <option value="SNL Sawai Madhopur">SNL Sawai Madhopur</option>
+                </select>
+                <select id="fFloor" class="form-select mt-2" style="display:none">
+                  <option value="Ground Floor">Floor 1 — Ground Floor</option>
+                  <option value="First Floor">Floor 2 — First Floor</option>
+                  <option value="Second Floor">Floor 3 — Second Floor</option>
+                </select>
               </div>
               <div>
                 <label class="form-label">Purchase Date</label>
